@@ -133,7 +133,7 @@ const LineChart = ({ data, list, deleteCallback }: AppProps) => {
   };
 
   const setBorderColor = () => {
-    const newOptions = { ...options };
+    const newOptions: any = { ...options };
     newOptions.scales = {
       xAxes: {
         align: "center",

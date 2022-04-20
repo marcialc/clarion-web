@@ -217,7 +217,8 @@ const LineChart = ({ data, list, deleteCallback }: AppProps) => {
   };
 
   const isPercentPositive = (percent: string) => {
-    const num = Number(percent);
+    const str = percent.replace(/[\/\\,]/g, '');
+    const num = Number(str);
     return num >= 0.0;
   };
 

@@ -7,20 +7,13 @@ import chartLoading from "../../public/lottie/chart-loading.json";
 import { Player } from "@lottiefiles/react-lottie-player";
 import useDeviceDetect from "../../utils/useDeviceDetect";
 import { Alert, Button, ButtonGroup, Snackbar, styled } from "@mui/material";
-import { getColors } from "../Chart/helper";
+import { dateOptions, getColors } from "../Chart/helper";
 
 type CoinT = {
   id: string;
   percentages: number[];
   priceDifferences: number[];
   prices: number[];
-};
-
-const options: Intl.DateTimeFormatOptions = {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
 };
 
 const ChartWrapper = styled("div", { label: "ChartWrapper" })(
@@ -138,7 +131,7 @@ export const Dashboard = () => {
 
     dates.forEach((date: string) => {
       const d = new Date(date);
-      label.push(d.toLocaleDateString("en-US", options));
+      label.push(d.toLocaleDateString("en-US", dateOptions(day > 2)));
     });
 
     const new_data = {

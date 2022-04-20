@@ -10,40 +10,44 @@ import { Alert, Button, ButtonGroup, Snackbar, styled } from "@mui/material";
 import { getColors } from "../Chart/helper";
 
 type CoinT = {
-  id: string,
+  id: string;
   percentages: number[];
   priceDifferences: number[];
   prices: number[];
-}
+};
 
 const options: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
   hour: "numeric",
   minute: "2-digit",
-}
+};
 
-const ChartWrapper = styled('div', { label: 'ChartWrapper' })(({ theme }: any) => ({
-  [theme.breakpoints.up("md")]: {
-    // Below 600px
-    width: '80%',
-    margin: '0 auto'
-  },
-  width: "100%",
-  margin: '0'
-}));
+const ChartWrapper = styled("div", { label: "ChartWrapper" })(
+  ({ theme }: any) => ({
+    [theme.breakpoints.up("md")]: {
+      // Below 600px
+      width: "80%",
+      margin: "0 auto",
+    },
+    width: "100%",
+    margin: "0",
+  })
+);
 
-const DayFilterWrapper = styled('div', { label: 'DayFilterWrapper' })(({ theme }: any) => ({
-  [theme.breakpoints.up("md")]: {
-    // Below 600px
-    width: '80%',
-    margin: '0 auto'
-  },
-  display: 'flex',
-  justifyContent: 'flex-end',
-  width: '100%',
-  margin: '0'
-}));
+const DayFilterWrapper = styled("div", { label: "DayFilterWrapper" })(
+  ({ theme }: any) => ({
+    [theme.breakpoints.up("md")]: {
+      // Below 600px
+      width: "80%",
+      margin: "0 auto",
+    },
+    display: "flex",
+    justifyContent: "flex-end",
+    width: "100%",
+    margin: "0",
+  })
+);
 
 const days = [1, 7, 30, 365, 1825];
 
@@ -56,9 +60,10 @@ export const Dashboard = () => {
   const [day, setDay] = useState<number>(0);
   const [listCoins, setListCoins] = useState<any[]>([]);
   const [listCoinsName, setListCoinsName] = useState<any[]>([]);
-  const { isMobile } = useDeviceDetect();
   const [repeatedCoin, setRepeatedCoin] = React.useState(false);
-  
+
+  const [apiFailed, setApiFailed] = React.useState(false);
+
   useEffect(() => {
     getCoinData();
     setChartData();
@@ -87,6 +92,7 @@ export const Dashboard = () => {
         setListCoinsName(list_coin_name);
       })
       .catch((err) => {
+        setApiFailed(true);
         console.error("ERROR: ", err);
       });
   };
@@ -97,6 +103,7 @@ export const Dashboard = () => {
         setData(response);
       })
       .catch((err) => {
+        setApiFailed(true);
         console.log("ERROR IN FETCHING CHART DATA");
       });
   };
@@ -105,7 +112,9 @@ export const Dashboard = () => {
     const datasets: any[] = [];
     let label: any[] = [];
 
-    const coinsEndpoint = `https://rocky-depths-43170.herokuapp.com/api/coin/history?values=${days[day]},${selectedCoins.join(',')}`;
+    const coinsEndpoint = `https://rocky-depths-43170.herokuapp.com/api/coin/history?values=${
+      days[day]
+    },${selectedCoins.join(",")}`;
     const res = await axios.get(coinsEndpoint);
 
     const coins = res.data.coins;
@@ -114,23 +123,23 @@ export const Dashboard = () => {
 
     coins.forEach((coin: CoinT, i: number) => {
       datasets.push({
-            label: coin.id.toLocaleLowerCase(),
-            data: coin.percentages,
-            moreData: {
-              price: coin.prices,
-              difference:  coin.priceDifferences,
-            },
-            borderColor: colors[i],
-            backgroundColor: colors[i],
-            borderWidth: 2,
-            pointBorderWidth: 0.2,
-          });
-    })
+        label: coin.id.toLocaleLowerCase(),
+        data: coin.percentages,
+        moreData: {
+          price: coin.prices,
+          difference: coin.priceDifferences,
+        },
+        borderColor: colors[i],
+        backgroundColor: colors[i],
+        borderWidth: 2,
+        pointBorderWidth: 0.2,
+      });
+    });
 
     dates.forEach((date: string) => {
-      const d = new Date(date)
-      label.push(d.toLocaleDateString("en-US", options))
-    })
+      const d = new Date(date);
+      label.push(d.toLocaleDateString("en-US", options));
+    });
 
     const new_data = {
       labels: label,
@@ -150,7 +159,7 @@ export const Dashboard = () => {
       return;
     }
 
-    if(selectedCoins.includes(coin)) {
+    if (selectedCoins.includes(coin)) {
       setRepeatedCoin(true);
       return;
     }
@@ -182,55 +191,105 @@ export const Dashboard = () => {
   };
 
   const handleTimeLineSelection = (id: any) => {
-    console.log("handleTimeLineSelection: ", id)
+    console.log("handleTimeLineSelection: ", id);
     setDay(id);
   };
 
-  const activeStyle = { background: '#6440ecb0', color: 'white !important' }
+  const activeStyle = { background: "#6440ecb0", color: "white !important" };
 
   return (
     <div style={{ width: "100%" }}>
-      <Snackbar anchorOrigin={{vertical: 'top', horizontal: 'center'}} open={repeatedCoin} autoHideDuration={2500} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
-          Coin already selected!
-        </Alert>
-      </Snackbar>
-      {listCoins.length > 0 ? (
-        <AutoFillDropDown
-          list={listCoinsName}
-          callback={handleInput}
-          selectedList={selectedCoins}
-          label="Cryptos"
-          disabled={selectedCoins.length > 4}
-        />
+      {!apiFailed ? (
+        <>
+          <Snackbar
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            open={repeatedCoin}
+            autoHideDuration={2500}
+            onClose={handleClose}
+          >
+            <Alert
+              onClose={handleClose}
+              severity="error"
+              sx={{ width: "100%" }}
+            >
+              Coin already selected!
+            </Alert>
+          </Snackbar>
+          {listCoins.length > 0 ? (
+            <AutoFillDropDown
+              list={listCoinsName}
+              callback={handleInput}
+              selectedList={selectedCoins}
+              label="Cryptos"
+              disabled={selectedCoins.length > 4}
+            />
+          ) : (
+            <Player
+              autoplay
+              loop
+              src={loadingAnimation}
+              style={{ height: "150px", width: "150px", margin: "-50px auto" }}
+            />
+          )}
+          <DayFilterWrapper>
+            <ButtonGroup
+              style={{ margin: "1rem 0" }}
+              variant="outlined"
+              size="small"
+              aria-label="small button group"
+            >
+              <Button
+                onClick={() => handleTimeLineSelection(0)}
+                disabled={day === 0}
+                sx={day === 0 ? activeStyle : null}
+              >
+                24h
+              </Button>
+              <Button
+                onClick={() => handleTimeLineSelection(1)}
+                disabled={day === 1}
+                sx={day === 1 ? activeStyle : null}
+              >
+                7D
+              </Button>
+              <Button
+                onClick={() => handleTimeLineSelection(2)}
+                disabled={day === 2}
+                sx={day === 2 ? activeStyle : null}
+              >
+                1M
+              </Button>
+              <Button
+                onClick={() => handleTimeLineSelection(3)}
+                disabled={day === 3}
+                sx={day === 3 ? activeStyle : null}
+              >
+                1Y
+              </Button>
+              <Button
+                onClick={() => handleTimeLineSelection(4)}
+                disabled={day === 4}
+                sx={day === 4 ? activeStyle : null}
+              >
+                5Y
+              </Button>
+            </ButtonGroup>
+          </DayFilterWrapper>
+          <ChartWrapper>
+            {Object.keys(data).length !== 0 ? (
+              <LineChart
+                data={data}
+                list={selectedCoins}
+                deleteCallback={handleDeletion}
+              />
+            ) : (
+              <Player autoplay loop src={chartLoading} />
+            )}
+          </ChartWrapper>
+        </>
       ) : (
-        <Player
-          autoplay
-          loop
-          src={loadingAnimation}
-          style={{ height: "150px", width: "150px", margin: "-50px auto" }}
-        />
+        <div>Api Failed</div>
       )}
-      <DayFilterWrapper>
-          <ButtonGroup style={{ margin: '1rem 0'}} variant="outlined" size="small" aria-label="small button group">
-            <Button onClick={() => handleTimeLineSelection(0)} disabled={day === 0} sx={day === 0 ? activeStyle: null}>24h</Button>
-            <Button onClick={() => handleTimeLineSelection(1)} disabled={day === 1} sx={day === 1 ? activeStyle: null}>7D</Button>
-            <Button onClick={() => handleTimeLineSelection(2)} disabled={day === 2} sx={day === 2 ? activeStyle: null}>1M</Button>
-            <Button onClick={() => handleTimeLineSelection(3)} disabled={day === 3} sx={day === 3 ? activeStyle: null}>1Y</Button>
-            <Button onClick={() => handleTimeLineSelection(4)} disabled={day === 4} sx={day === 4 ? activeStyle: null}>5Y</Button>
-          </ButtonGroup>
-      </DayFilterWrapper>
-      <ChartWrapper>
-        {Object.keys(data).length !== 0 ? (
-          <LineChart
-            data={data}
-            list={selectedCoins}
-            deleteCallback={handleDeletion}
-          />
-        ) : (
-          <Player autoplay loop src={chartLoading} />
-        )}
-      </ChartWrapper>
     </div>
   );
 };
